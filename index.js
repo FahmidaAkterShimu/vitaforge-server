@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require('cors');
 const dotenv = require('dotenv');
 
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
@@ -9,6 +10,7 @@ const uri = process.env.MONGODB_URI
 const app = express()
 const PORT = process.env.PORT
 
+app.use(cors());
 app.use(express.json());
 
 const client = new MongoClient(uri, {
@@ -26,10 +28,20 @@ async function run() {
         await client.db("admin").command({ ping: 1 });
         console.log("You successfully connected to MongoDB!");
 
+        const database = client.db("VitaForge");
+        // user dashboard collection
+        const applicationCollection = database.collection("trainerApplications")
+
+        // ==== USER API ====
+        app.post('/api/trainer-applications', async (req, res) => {
+            const application = req.body;
+            const result = await applicationCollection.insertOne(application);
+            res.send(result);
+        })
 
         return client;
-    } finally {
-        await client.close();
+    } catch (error) {
+        console.error(error);
     }
 }
 run().catch(console.dir);
