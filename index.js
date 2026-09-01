@@ -29,15 +29,31 @@ async function run() {
         console.log("You successfully connected to MongoDB!");
 
         const database = client.db("VitaForge");
-        // user dashboard collection
+
+        // User dashboard collection
         const applicationCollection = database.collection("trainerApplications")
 
-        // ==== USER API ====
+        // Trainer dashboard collection
+        const classesCollection = database.collection("classes")
+
+
+        // ==== From USER Dashboard ====
+        // Post API to post trainer-applications 
         app.post('/api/trainer-applications', async (req, res) => {
             const application = req.body;
             const result = await applicationCollection.insertOne(application);
             res.send(result);
         })
+
+
+        // ==== From TRAINER Dashboard ====
+        // post API to post a new class
+        app.post('/api/classes', async (req, res) => {
+            const newClass = req.body;
+            const result = await classesCollection.insertOne(newClass);
+            res.send(result);
+        })
+
 
         return client;
     } catch (error) {
