@@ -36,6 +36,8 @@ async function run() {
         // Trainer dashboard collection
         const classesCollection = database.collection("classes")
 
+        const forumPostsCollection = database.collection("forumPosts");
+
 
         // ==== For USER Dashboard ====
 
@@ -145,6 +147,16 @@ async function run() {
             }
         });
 
+
+        // Post API to post forum
+        app.post("/api/forum-posts", async (req, res) => {
+            const newForum = req.body;
+            const result = await forumPostsCollection.insertOne(newForum);
+            res.send(result);
+        });
+
+
+        
 
         return client;
     } catch (error) {
