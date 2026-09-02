@@ -37,7 +37,8 @@ async function run() {
         const classesCollection = database.collection("classes")
 
 
-        // ==== From USER Dashboard ====
+        // ==== For USER Dashboard ====
+
         // Post API to post trainer-applications 
         app.post('/api/trainer-applications', async (req, res) => {
             const application = req.body;
@@ -46,13 +47,103 @@ async function run() {
         })
 
 
-        // ==== From TRAINER Dashboard ====
-        // post API to post a new class
+        // ==== For TRAINER Dashboard ====
+
+        // Post API to post a new class
         app.post('/api/classes', async (req, res) => {
             const newClass = req.body;
             const result = await classesCollection.insertOne(newClass);
             res.send(result);
         })
+
+        //  Get API to get classes
+        app.get('/api/classes', async (req, res) => {
+            const query = {};
+            if (req.query.trainerId) {
+                query.trainerId = req.query.trainerId;
+            }
+            if (req.query.status) {
+                query.status = req.query.status;
+            }
+            const cursor = classesCollection.find(query);
+            const result = await cursor.toArray();
+            res.send(result);
+        })
+
+        // Update Class API
+        app.patch("/api/classes/:id", async (req, res) => {
+            try {
+                const id = req.params.id;
+                const updatedClass = req.body;
+
+                const filter = {
+                    _id: new ObjectId(id),
+                };
+
+                const updateDoc = {
+                    $set: {
+                        ...updatedClass,
+                        updatedAt: new Date(),
+                    },
+                };
+
+                const result = await classesCollection.updateOne(
+                    filter,
+                    updateDoc
+                );
+
+                if (result.matchedCount === 0) {
+                    return res.status(404).send({
+                        success: false,
+                        message: "Class not found",
+                    });
+                }
+
+                res.send({
+                    success: true,
+                    message: "Class updated successfully",
+                });
+
+            } catch (error) {
+                console.error("Update class error:", error);
+
+                res.status(500).send({
+                    success: false,
+                    message: "Failed to update class",
+                });
+            }
+        });
+
+        // Delete Class API
+        app.delete("/api/classes/:id", async (req, res) => {
+            try {
+                const id = req.params.id;
+
+                const result = await classesCollection.deleteOne({
+                    _id: new ObjectId(id),
+                });
+
+                if (result.deletedCount === 0) {
+                    return res.status(404).send({
+                        success: false,
+                        message: "Class not found",
+                    });
+                }
+
+                res.send({
+                    success: true,
+                    message: "Class deleted successfully",
+                });
+
+            } catch (error) {
+                console.error("Delete class error:", error);
+
+                res.status(500).send({
+                    success: false,
+                    message: "Failed to delete class",
+                });
+            }
+        });
 
 
         return client;
