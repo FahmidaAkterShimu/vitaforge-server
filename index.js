@@ -148,15 +148,67 @@ async function run() {
         });
 
 
+
         // Post API to post forum
         app.post("/api/forum-posts", async (req, res) => {
-            const newForum = req.body;
-            const result = await forumPostsCollection.insertOne(newForum);
+            try {
+                const newForum = req.body;
+
+                const result = await forumPostsCollection.insertOne(newForum);
+
+                res.status(201).send({
+                    success: true,
+                    message: "Forum post created successfully",
+                    insertedId: result.insertedId,
+                });
+            } catch (error) {
+                console.error("Create forum post error:", error);
+
+                res.status(500).send({
+                    success: false,
+                    message: "Failed to create forum post",
+                });
+            }
+        });
+
+        // Get API to get forum posts
+        app.get("/api/forum-posts", async (req, res) => {
+            try {
+                const query = {};
+
+                // Trainer's own posts
+                if (req.query.trainerId) {
+                    query.trainerId = req.query.trainerId;
+                }
+
+                const result = await forumPostsCollection
+                    .find(query)
+                    .sort({ createdAt: -1 })
+                    .toArray();
+
+                res.send(result);
+            } catch (error) {
+                console.error("Get forum posts error:", error);
+
+                res.status(500).send({
+                    success: false,
+                    message: "Failed to get forum posts",
+                });
+            }
+        });
+
+        // Delete API to delete post
+        app.delete("/api/forum-posts/:id", async (req, res) => {
+            const { id } = req.params;
+            // const { trainerId } = req.body;
+
+            const result = await forumPostsCollection.deleteOne({
+                _id: new ObjectId(id),
+                // trainerId: trainerId,
+            });
             res.send(result);
         });
 
-
-        
 
         return client;
     } catch (error) {
