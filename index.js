@@ -48,6 +48,18 @@ async function run() {
             res.send(result);
         })
 
+        // Get single class
+        app.get("/api/classes/:id", async (req, res) => {
+            const { id } = req.params;
+
+            const result = await classesCollection.findOne({
+                _id: new ObjectId(id),
+            });
+
+            res.json(result)
+        });
+
+
 
         // ==== For TRAINER Dashboard ====
 
