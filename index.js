@@ -188,15 +188,21 @@ async function run() {
             try {
                 const query = {};
 
-                // Trainer's own posts
                 if (req.query.trainerId) {
                     query.trainerId = req.query.trainerId;
                 }
 
-                const result = await forumPostsCollection
+                const limit = Number(req.query.limit) || 0;
+
+                let cursor = forumPostsCollection
                     .find(query)
-                    .sort({ createdAt: -1 })
-                    .toArray();
+                    .sort({ createdAt: -1 });
+
+                if (limit > 0) {
+                    cursor = cursor.limit(limit);
+                }
+
+                const result = await cursor.toArray();
 
                 res.send(result);
             } catch (error) {
@@ -219,6 +225,35 @@ async function run() {
                 // trainerId: trainerId,
             });
             res.send(result);
+        });
+
+        // Get API for Forum post details
+        app.get("/api/forum-posts/:id", async (req, res) => {
+            try {
+                const { id } = req.params;
+
+
+                const post = await forumPostsCollection.findOne({
+                    _id: new ObjectId(id),
+                });
+
+                if (!post) {
+                    return res.status(404).send({
+                        success: false,
+                        message: "Forum post not found",
+                    });
+                }
+
+                res.send(post);
+            } catch (error) {
+                console.error("Get forum post error:", error);
+
+                res.status(500).send({
+                    success: false,
+                    message: "Failed to get forum post",
+                });
+            }
+
         });
 
 
